@@ -1,26 +1,19 @@
 package store
-
 import java.time.LocalDate
 
-/**
- * 편의점 상품의 스냅샷(현재 상태)
- * - id: 불변 식별자(문자열)
- * - targetStock/currentStock: 적정/현재 재고
- * - expiryDate: 유통기한(없으면 null)
- */
-data class Product(
-    val id: ProductId,
+class Product(
+    val id: String,
     var name: String,
     val category: ProductCategory,
     var price: Int,
-    reorderLevel: Int,
-    stock: Int,
-    val expiry: LocalDate? = null,
+    initialReorderLevel: Int,
+    initialStock: Int,
+    val expiry: LocalDate? = null
 ) {
-    var reorderLevel: Int = reorderLevel
+    var reorderLevel: Int = initialReorderLevel
         private set
 
-    var stock: Int = stock
+    var stock: Int = initialStock
         private set
 
     fun restock(qty: Int) {
@@ -38,5 +31,8 @@ data class Product(
         require(newPrice >= 0) { "가격은 음수 불가" }
         price = newPrice
     }
+
+    // 엔티티 동등성(선택) — ID 기준
+    override fun equals(other: Any?) = other is Product && other.id == id
+    override fun hashCode(): Int = id.hashCode()
 }
-@JvmInline value class ProductId(val value: String)

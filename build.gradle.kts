@@ -32,6 +32,6 @@ application {
 
 tasks.shadowJar {
     archiveBaseName.set("convenience-store-system")
-    archiveVersion.set("")
+    archiveVersion.set("1.0.0")
     archiveClassifier.set("all")
 }
