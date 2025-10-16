@@ -51,7 +51,7 @@ class ConsoleApp(
             return
         }
         println("[상품 목록 - 간단 보기] (${list.size}건)")
-        println("ID\t|\t이름\t|\t재고")
+        println("ID\t\t|\t이름\t|\t재고")
         list.forEach { p -> println("${p.id}\t|\t${p.name}\t|\t${p.currentStock}") }
     }
 
@@ -227,7 +227,7 @@ class ConsoleApp(
         val eStr = readLine()?.trim()
         val expiry = if (eStr.isNullOrBlank()) p.expiryDate else LocalDate.parse(eStr, dtf)
 
-        // ✅ ID/분류 고정, 나머지만 갱신
+        // ID/분류 고정, 나머지만 갱신
         inv.upsert(
             p.copy(
                 name = name,
@@ -276,7 +276,7 @@ class ConsoleApp(
             return
         }
         println("[상품 목록] (${list.size}건)")
-        println("ID\t|\t이름\t\t\t|\t카테고리\t|\t가격\t|\t적정\t|\t현재\t|\t유통기한")
+        println("ID\t\t|\t이름\t\t\t|\t카테고리\t|\t가격\t|\t적정\t|\t현재\t|\t유통기한")
         list.forEach { p ->
             val price = p.price.krw()
             val exp = renderExpiry(p)
