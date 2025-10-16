@@ -49,6 +49,8 @@ convenience-store-system/
 ├─ Review.md
 └─ Prompt.md
 
+---
+
 - **핵심 로직**
   - 임계 재고: `current/target < 0.3` → `LOW`, `<=0` → `OUT_OF_STOCK`
   - 할인: `manualDiscount` 등록 **우선**, 없으면 D-day 표(`3→0%`, `2→30%`, `1→50%`, `0→70%`)
