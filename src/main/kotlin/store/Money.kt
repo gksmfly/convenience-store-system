@@ -1,4 +1,3 @@
-@file:Suppress("PackageDirectoryMismatch")
 package store
 
 import java.text.NumberFormat

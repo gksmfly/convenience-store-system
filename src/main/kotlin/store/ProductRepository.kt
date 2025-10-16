@@ -1,4 +1,3 @@
-@file:Suppress("PackageDirectoryMismatch")
 package store
 
 /** 상품 저장소 인터페이스(교체 가능성 고려) */
