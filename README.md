@@ -1,124 +1,139 @@
-# convenience-store-system
+# README.md
 
-24시간 학교 편의점 **스마트 재고 관리 시스템** (모바일 프로그래밍 과제).  
-데이터 모델링(상품/재고/판매), 재고 임계치 경고, 유통기한 기반 할인, 매출·회전율 리포트 등을 **Kotlin/JVM**으로 구현했습니다.
+# 24시간 학교 편의점 스마트 재고 관리 시스템
 
-## 핵심 기능
-- 재고 추가/수정/삭제 및 조회 (카테고리·바코드·이름 기준 검색)
-- 임계치(예: 30%) 미만 재고 경고 및 자동 발주 제안
-- 유통기한 임박 할인 정책 (예: D-3/2/1/0 → 0/30/50/70%)
-- 판매/반품 처리와 일·주간 매출 리포트, 회전율 계산
-- 베스트셀러 TOP-N, 카테고리별 매출/마진 요약
-- CSV 입·출력(초기 데이터 적재, 결과 내보내기)
-- CLI 메뉴 기반 운영(과제 제출 요구에 맞춘 콘솔 I/O)
+모바일 프로그래밍 과제용 콘솔 애플리케이션입니다.  
+상품/재고/판매를 **Kotlin(JVM)** 으로 모델링하고, 유통기한 기반 **자동 할인**, **임계 재고 경고**, **매출·회전율 리포트**를 제공합니다.
 
-## 기술 스택
-- **Language**: Kotlin 2.2.0
-- **JDK/JVM Target**: 17+
-- **Build**: Gradle Wrapper
-- **Test**: kotest/junit (필요 시)
-- **Packaging**: fat-jar (application 플러그인 사용 시)
+---
 
-## 프로젝트 구조 (요약)
-```
+## 1) 프로젝트 간단 설명
+
+- **문제**: 야간 무인 운영 시 재고 파악이 늦고, 유통기한 임박 상품 할인/폐기 판단이 수동이라 비효율.
+- **해결**:  
+  - 재고율 30% 미만 **긴급 경고** + 권장 발주량 제안  
+  - **D-day**(D-3/2/1/0) 규칙 할인과 **수동 할인** 등록  
+  - 일/주간 **매출·베스트셀러·회전율** 분석 및 요약 리포트
+
+---
+
+## 프로젝트 구조
+
+```text
 convenience-store-system/
-├─ __MACOSX/
-│  ├─ convenience-store-system/
-│  │  ├─ build/
-│  │  │  ├─ classes/
-│  │  │  ├─ distributions/
-│  │  │  ├─ kotlin/
-│  │  │  ├─ libs/
-│  │  │  ├─ reports/
-│  │  │  ├─ scripts/
-│  │  │  ├─ tmp/
-│  │  ├─ gradle/
-│  │  │  ├─ wrapper/
-│  │  ├─ src/
-│  │  │  ├─ main/
-│  │  │  ├─ test/
-├─ convenience-store-system/
-│  ├─ build/
-│  │  ├─ classes/
-│  │  │  ├─ kotlin/
-│  │  ├─ distributions/
-│  │  │  ├─ convenience-store-system-1.0.0.tar
-│  │  │  ├─ convenience-store-system-1.0.0.zip
+├─ build.gradle.kts
+├─ settings.gradle.kts
+├─ gradle/
+├─ gradlew
+├─ gradlew.bat
+├─ src/
+│  ├─ main/
 │  │  ├─ kotlin/
-│  │  │  ├─ compileKotlin/
-│  │  ├─ libs/
-│  │  │  ├─ convenience-store-system-1.0.0-all.jar
-│  │  │  ├─ convenience-store-system-1.0.0.jar
-│  │  ├─ reports/
-│  │  │  ├─ problems/
-│  │  ├─ scripts/
-│  │  │  ├─ convenience-store-system
-│  │  │  ├─ convenience-store-system.bat
-│  │  ├─ tmp/
-│  │  │  ├─ jar/
-│  │  │  ├─ shadowJar/
-│  ├─ gradle/
-│  │  ├─ wrapper/
-│  │  │  ├─ gradle-wrapper.jar
-│  │  │  ├─ gradle-wrapper.properties
-│  ├─ src/
-│  │  ├─ main/
-│  │  │  ├─ kotlin/
-│  │  │  ├─ resources/
-│  │  ├─ test/
-│  │  │  ├─ kotlin/
-│  │  │  ├─ resources/
-│  ├─ build.gradle.kts
-│  ├─ gradle.properties
-│  ├─ gradlew
-│  ├─ gradlew.bat
-│  ├─ settings.gradle.kts
-```
+│  │  │  └─ store/
+│  │  │     ├─ App.kt
+│  │  │     ├─ ConsoleApp.kt
+│  │  │     ├─ Product.kt
+│  │  │     ├─ Enums.kt
+│  │  │     ├─ Money.kt
+│  │  │     ├─ Clock.kt
+│  │  │     ├─ ProductRepository.kt
+│  │  │     ├─ SalesRepository.kt
+│  │  │     ├─ InventoryService.kt
+│  │  │     ├─ PricingService.kt
+│  │  │     ├─ AnalysisService.kt
+│  │  │     └─ ReportService.kt
+│  │  └─ resources/
+│  └─ test/
+│     └─ kotlin/
+├─ README.md
+├─ Review.md
+└─ Prompt.md
 
-> 주요 소스: `src/main/kotlin` 하위. 메인 엔트리: **MainKt**.
+- **핵심 로직**
+  - 임계 재고: `current/target < 0.3` → `LOW`, `<=0` → `OUT_OF_STOCK`
+  - 할인: `manualDiscount` 등록 **우선**, 없으면 D-day 표(`3→0%`, `2→30%`, `1→50%`, `0→70%`)
+  - 리포트: 오늘 매출/최근 N일 베스트, 회전율 상·하위, 과다재고, 발주권장 등 문자열 리포트 생성
 
-## 빠른 시작
+---
 
-### 1) 필수 요건
-- JDK 17+ 설치
-- (권장) `JAVA_HOME` 설정
+## 3) 설치 & 실행 방법
 
-### 2) 빌드
+### 요구사항
+- **Gradle Wrapper 포함** (동봉)  
+- `build.gradle.kts`의 도구 체인: `kotlin("jvm") 2.2.0`, `jvmToolchain(24)`  
+  - 로컬 `java -version` 이 **24 이상**이 아니면 `java -jar` 실행이 실패할 수 있음  
+  - 필요 시 `build.gradle.kts` 의 `jvmToolchain(24)` 를 `17`로 낮춰 빌드해도 됨
+
+### 빌드
 ```bash
+# 프로젝트 루트에서
 ./gradlew clean build
-```
 
-빌드 산출물: `build/libs/*.jar`
+### 산출물: build/libs/convenience-store-system-1.0.0.jar (fat-jar)
 
-### 3) 실행
-**방법 A (Gradle Application 플러그인 사용 시)**  
-`build.gradle.kts`에 `application { mainClass.set("MainKt") }` 가 설정되어 있다면:
-```bash
-./gradlew run
-```
+---
 
-**방법 B (JAR 실행)**  
-shadow/fat-jar 생성 시:
-```bash
-java -jar build/libs/convenience-store-system.jar
-```
-> fat-jar 생성이 안 된다면, application + shadow 플러그인 적용을 권장합니다.
+## 4) 사용 방법(메뉴)
 
-### 4) 샘플 시나리오
-1. **기초 데이터 로드**: CSV 불러오기로 품목/재고 초기화  
-2. **입고**: 바코드 `8801234567890` → 수량 20 추가  
-3. **판매**: `삼각김밥(참치)` 3개 판매 → 매출 반영, 재고 감소  
-4. **임계치 경고**: 재고율 30% 미만 품목은 경고 리스트에 노출  
-5. **유통기한 할인**: 만료 D-1 품목 자동 50% 할인 적용  
-6. **리포트**: 일간 매출/회전율, TOP5 베스트셀러 출력 및 CSV 저장
+실행하면 다음 콘솔 메뉴가 표시됩니다.
 
-## 평가 체크리스트(자가점검)
-- [ ] 데이터 모델: `data class Product`, 재고/판매 엔티티 분리
-- [ ] 비즈니스 로직: 재고 임계·할인·회전율·리포트 계산
-- [ ] 입출력: CSV 또는 콘솔 I/O 정상 동작
-- [ ] 예외 처리: 잘못된 입력(음수 수량/미존재 바코드) 방어
-- [ ] 코드 품질: 함수 분리, 테스트(단위/시나리오), 주석·KDoc
-- [ ] 문서: README/Review/Prompt 작성
+=== 24시간 편의점 재고 관리 ===
 
-## 라이선스
-과제 제출용(학습 목적). 외부 배포 시 각종 라이브러리 라이선스 준수.
+1. 전체 리포트 보기
+2. 상품 판매 등록
+3. 상품 입고 등록
+4. 상품 추가
+5. 상품 수정
+6. 상품 삭제
+7. 상품 목록/검색
+8. 종료 
+
+### 사용 시나리오 예시
+
+1. **리포트 확인(1)**  
+   - `긴급 재고 경고(≤30%)`, `유통기한 임박(D≤3)`, `할인 등록 현황`, `베스트셀러`, `오늘 매출`, `경영 분석`, `종합 현황`이 순서대로 출력됩니다.  
+   - 이어서 **[리포트 후 작업]**: `자동 발주(1)` 또는 `임박 처리(2: 할인등록/폐기)` 선택 가능.
+
+2. **판매 등록(2)**  
+   - 판매 가능 목록이 열거되고, **상품 ID**와 **수량**을 입력합니다.  
+   - D-day 또는 수동 할인 등록이 있으면 **할인가**가 자동 반영됩니다.  
+   - 재고 부족 시 예외 메시지와 함께 입력을 재요청합니다.
+
+3. **입고 등록(3)**  
+   - 부족 상품이 **재고율 오름차순**으로 정렬되어 표시됩니다.  
+   - `ID[,수량]` 형태로 여러 건을 연속 입력 가능.  
+   - 수량 생략 시 **권장 입고량**(적정-현재, 최소 1)이 자동 적용됩니다.
+
+4. **상품 관리(4~6)**  
+   - **추가(4)**: 분류/가격/재고/유통기한 입력. **ID 빈칸이면 자동 생성**(분류 prefix + 3자리).  
+   - **수정(5)**: ID/분류는 고정, 나머지 필드 갱신.  
+   - **삭제(6)**: 삭제 전 재확인 프롬프트 출력.
+
+5. **목록/검색(7)**  
+   - 전체 목록을 표 형태로 출력.  
+   - 특정 **ID 검색** 후 바로 `판매/입고/수정/삭제` 서브메뉴로 이동 가능합니다.
+
+---
+
+## 5) 평가 체크리스트(자가점검)
+
+- [ ] `data class Product/Sale` 등 **도메인 모델** 설계가 명확한가  
+- [ ] **임계 재고** / **유통기한 할인** / **회전율·베스트·경영 분석** 로직이 정상 동작하는가  
+- [ ] 콘솔 **입출력 UX**(권장값/가이드/오류 메시지)가 친절한가  
+- [ ] **예외 처리**(음수 수량, 재고 부족, 존재하지 않는 ID 등) 방어가 충분한가  
+- [ ] **코드 분리**(Repository/Service/UI), **주석/KDoc** 이 적절한가  
+- [ ] 문서(README/Review/Prompt)가 과제 요구사항을 충족하는가
+
+---
+
+## 6) 한계와 확장
+
+- 현재 **인메모리 저장소**라 종료 시 데이터가 사라집니다.  
+  → `SQLite`/`H2` 도입, REST 백엔드 + 웹 대시보드로 확장 권장  
+- 할인/발주 정책을 **전략 인터페이스**로 분리하여 매장별 규칙 교체 가능  
+- 회전율·사장재고 분석을 **시각화**(차트)로 확장 가능
+
+---
+
+## 7) 라이선스
+학습/과제 목적 사용. 외부 배포 시 의존 라이브러리 라이선스 준수.
