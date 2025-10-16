@@ -44,7 +44,7 @@
 
 ## 4. 프로젝트 구성
 
-> ※ 실제 소스 파일은 `src/main/kotlin/store/` 경로에 위치합니다. 아래 표는 **경로를 제외**한 *파일/폴더명 ↔ 설명* 매핑만 제공합니다.
+> ※ 실제 소스 파일은 `src/main/kotlin/store/` 경로에 위치하여 단일구조를 지니고 있습니다. 아래 표는 **경로를 제외**한 *파일/폴더명 ↔ 설명* 매핑만 제공합니다.
 
 ### 4-1. 프로젝트 폴더 설명 (경로 제외)
 | 파일/폴더명         | 설명 |
@@ -52,9 +52,6 @@
 | README.md           | 프로젝트 설명서 (현재 문서) |
 | REVIEW.md           | 프로젝트 개발 회고 문서 (docs/ 내) |
 | PROMPT.md           | AI 프롬프트 활용 기록 (docs/ 내) |
-| build.gradle.kts    | Gradle 빌드 스크립트 (의존성/플러그인/빌드 설정) |
-| settings.gradle.kts | 프로젝트 모듈 설정 |
-| gradlew / gradle/   | Gradle Wrapper (로컬 Gradle 설치 없이 빌드 실행) |
 | App.kt              | 프로그램 시작점(main 함수) |
 | ConsoleApp.kt       | 콘솔 UI 입력/출력 로직 |
 | Product.kt          | 상품 정보 데이터 클래스(이름, 가격 등) |
@@ -62,9 +59,8 @@
 | *Repository.kt      | 데이터 저장/조회 레이어(상품/판매 기록 등) |
 | *Service.kt         | 핵심 비즈니스 로직(재고·가격·분석·리포트) |
 | resources/          | (선택) CSV 등 리소스 파일 위치 |
-| docs/               | 프로젝트 문서 디렉터리 |
 
-> 참고: `*Repository.kt`, `*Service.kt` 는 파일명이 다양할 수 있음을 의미합니다.
+> 참고: `*Repository.kt`, `*Service.kt` 는 와일드카드(glob) 표기로, 'ProductRepository.kt', 'SalesRepository.kt', 'InventoryService.kt', 'PricingService.kt'처럼 접두사가 다른 동일 역할 파일들을 가리킵니다.
 
 ---
 
