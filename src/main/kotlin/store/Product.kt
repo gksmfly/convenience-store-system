@@ -2,7 +2,7 @@ package store
 
 import java.time.LocalDate
 
-/**
+/*
  * 편의점 상품의 스냅샷(현재 상태)
  * - id: 불변 식별자(문자열)
  * - targetStock/currentStock: 적정/현재 재고
