@@ -1,221 +1,96 @@
-## 24시간 학교 편의점 스마트 재고 관리 시스템
+# Convenience Store System — Smart Inventory Management for a 24/7 Campus Store
 
-모바일 프로그래밍 과제용으로 제작된 콘솔 기반의 재고 관리 애플리케이션입니다. **Kotlin (JVM)** 을 사용하여 상품·재고·판매 데이터를 모델링하고, 편의점 운영 효율을 높이기 위한 자동화된 분석 및 관리 기능을 제공합니다.
-
----
-
-## 1. 프로젝트 설명
-
-### 1-1. 개발 배경
-야간 무인으로 운영되는 교내 편의점에서는 **실시간 재고 파악의 어려움**, **유통기한 임박 상품의 수동 관리**, **데이터 기반 매출 분석 부재** 문제가 있었습니다. 본 프로젝트는 이러한 비효율을 개선하고, **데이터 기반 스마트 운영**을 지원하기 위해 시작되었습니다.
-
-### 1-2. 목표
-- 데이터를 기반으로 **재고를 자동 추적**하고 **부족 상품을 경고**합니다.  
-- **유통기한 규칙 기반 할인 정책**을 자동화하여 재고 손실을 최소화합니다.  
-- 판매 데이터를 분석해 **매출 동향**과 **베스트셀러 정보**를 제공, 운영 전략 수립을 돕습니다.
+> **TL;DR**: A console-based inventory management system for a school convenience store, automating expiry-driven discounts, reorder recommendations, and sales analytics using Kotlin.
 
 ---
 
-## 2. 주요 기능
+## Problem Statement
 
-### 2-1. 스마트 재고 경고
-- 재고율이 설정 임계치(예: **30%**) 미만이면 **긴급 재고 경고**를 표시합니다.  
-- 경고 시 **적정 재고량**을 바탕으로 **권장 발주 수량**을 함께 제안합니다.
+A 24-hour unmanned campus convenience store faces three recurring inefficiencies:
 
-### 2-2. 자동 할인 정책
-- 유통기한 임박일(**D-3/2/1/0**)에 따른 **자동 할인율** 적용  
-  - 예: D-3→0%, D-2→30%, D-1→50%, D-0→70%
-- 관리자가 등록한 **수동 할인**이 존재하면 **자동 할인보다 우선** 적용됩니다.
-
-### 2-3. 경영 분석 리포트
-- **일간/주간 매출 현황**, **베스트셀러 TOP 5** 집계  
-- **재고 회전율** 분석으로 인기/비인기 상품 식별  
-- **과다 재고** 품목을 알려 효율적 재고 관리 지원
+- No real-time visibility into inventory levels, leading to stockouts or overstock going unnoticed
+- Manual tracking of expiring products results in waste and inconsistent pricing
+- No data-driven sales reporting makes restocking decisions purely intuition-based
 
 ---
 
-## 3. 기술 스택
-- **언어**: Kotlin 2.2.0  
-- **플랫폼**: JVM (Java 24)  
-- **빌드 도구**: Gradle 8.x  
-- **의존성**: Kotlin 표준 라이브러리 (외부 라이브러리 최소화)
+## Approach
+
+- **Rule-based discount pipeline**: Expiry proximity (D-3/D-2/D-1/D-0) maps directly to discount tiers (0%/30%/50%/70%); manual discounts override auto-discounts when set
+- **Smart reorder formula**: `recommended_qty = max(0, target_stock - current_stock) + safety_stock (10% of target)` — surfaces actionable numbers rather than just alerts
+- **Service-layer separation**: Inventory, Pricing, Analysis, and Report logic are each in dedicated service classes to keep business rules isolated from console I/O
+- **Testable time abstraction**: A `Clock` interface wraps `LocalDate.now()` so expiry calculations can be tested without manipulating system time
 
 ---
 
-## 4. 프로젝트 구성
+## Key Results
 
-> ※ 실제 소스 파일은 `src/main/kotlin/store/` 경로에 위치하여 단일구조를 지니고 있습니다. 아래 표는 **경로를 제외**한 *파일/폴더명 ↔ 설명* 매핑만 제공합니다.
-
-### 4-1. 프로젝트 폴더 설명 (경로 제외)
-| 파일/폴더명         | 설명 |
-|---------------------|------|
-| README.md           | 프로젝트 설명서 (현재 문서) |
-| REVIEW.md           | 프로젝트 개발 회고 문서 (docs/ 내) |
-| PROMPT.md           | AI 프롬프트 활용 기록 (docs/ 내) |
-| App.kt              | 프로그램 시작점(main 함수) |
-| ConsoleApp.kt       | 콘솔 UI 입력/출력 로직 |
-| Product.kt          | 상품 정보 데이터 클래스(이름, 가격 등) |
-| Enums.kt            | 열거형 타입 정의(상품 분류, 재고 상태 등) |
-| *Repository.kt      | 데이터 저장/조회 레이어(상품/판매 기록 등) |
-| *Service.kt         | 핵심 비즈니스 로직(재고·가격·분석·리포트) |
-| resources/          | (선택) CSV 등 리소스 파일 위치 |
-
-> 참고: `*Repository.kt`, `*Service.kt` 는 와일드카드(glob) 표기로, 'ProductRepository.kt', 'SalesRepository.kt', 'InventoryService.kt', 'PricingService.kt'처럼 접두사가 다른 동일 역할 파일들을 가리킵니다.
+| Feature | Detail |
+|---------|--------|
+| Discount tiers | D-3: 0%, D-2: 30%, D-1: 50%, D-0: 70% |
+| Alert threshold | Stock ratio < 30% triggers urgent warning |
+| Reorder logic | Auto-calculates recommended quantity per product |
+| Report output | Daily/weekly sales, TOP-5 bestsellers, turnover rate, overstock list |
 
 ---
 
-## 5. 구현 방법 (핵심 로직)
+## Tech Stack
 
-### 5-1. 재고 상태 판단
-- 공식: `재고율 = 현재재고 / 적정재고`
-- 기준: `== 0 → OUT_OF_STOCK`, `< 0.3 → LOW`, 그 외 `OK`
-- 엣지: `적정재고 == 0`일 때는 분모가 0이므로 `현재재고 == 0 → OUT_OF_STOCK`, 그 외 `OK`로 처리
-- 음수/비정상 입력은 즉시 검증(guard)하여 거절
-
-### 5-2. 가격/할인 파이프라인
-- 우선순위: **수동 할인 > 유통기한 자동 할인 > 기본가**
-- 유통기한 할인 규칙: `D-3: 0%`, `D-2: 30%`, `D-1: 50%`, `D-0: 70%`
-- 최종가 산출: `finalPrice = basePrice × (1 - discountRate)` → 소수점 반올림 규칙 고정(예: 원단위 반올림)
-
-### 5-3. 유통기한(D-Day) 계산
-- `D = (만료일 - 오늘)` (오늘=0, 내일=+1)
-- `Clock`(시간 추상화)을 통해 테스트 가능하게 구현
-
-### 5-4. 판매(출고) 트랜잭션
-- 입력 검증: 존재하는 상품, 판매 수량 > 0, 재고 충분 여부
-- 가격 산출(5-2 적용) → 판매 기록 생성 → **재고 차감**
-- 실패 시 사용자 메시지 표준화(예: “재고 부족: 필요 n, 보유 m”)
-
-### 5-5. 입고(수불) 처리
-- 입력 검증: 수량 > 0
-- **재고 증가** 및 필요 시 유통기한/가격 정보 갱신
-- 자동 권장 발주량 사용 가능: `권장 = max(0, 적정재고 - 현재재고) + 안전재고(기본 적정의 10%)`
-
-### 5-6. 분석 지표 산출
-- 매출 합계(일/주): `Σ(판매수량 × 최종가)`
-- 베스트셀러 TOP5: 판매수량 내림차순 상위 5개
-- 재고 회전율(기간): `판매수량 ÷ 기간 평균재고수량` (간단식)
-- 과다 재고: `현재재고 > 적정재고 × 1.5` (기본 기준, 설정 가능)
-- 발주 권장: 5-5의 공식으로 계산하여 리포트에 함께 표시
-
-### 5-7. 리포트 생성 파이프라인
-- 입력: 상품/재고/판매 집계치
-- 처리: 5-6 지표 계산 → 섹션별 문자열 포맷팅
-- 출력: 콘솔용 **가독성 높은 문자열 리포트**(경고/권장 발주/베스트셀러/회전율/과다 재고)
-
-### 5-8. 데이터 검증 & 예외 처리(공통)
-- 숫자/날짜/ID 유효성 검증, 음수 차단, 오버플로 보호
-- 모든 실패 케이스에 **명확한 사용자 메시지** 제공
+| Layer | Technology |
+|-------|-----------|
+| Language | Kotlin 2.2.0 |
+| Runtime | JVM (Java 24) |
+| Build | Gradle 8.x (Wrapper included) |
+| Dependencies | Kotlin stdlib only |
 
 ---
 
-## 6. 설치 및 실행 방법
+## Project Structure
 
-### 6-1. 요구사항
-- **JDK**: Java 24 권장  
-  - 로컬 Java 버전이 낮다면 `build.gradle.kts` 의 `jvmToolchain(24)` 를 `jvmToolchain(17)` 등으로 낮춰 빌드 가능합니다.
-- **Gradle**: 저장소에 포함된 **Gradle Wrapper** 사용 → 별도 설치 불필요
-
-### 6-2. 빌드 및 실행
-
-#### 프로젝트 빌드
-```bash
-# 프로젝트 최상위 폴더에서
-./gradlew clean build
+```
+src/main/kotlin/store/
+├── App.kt               # Entry point — wires repositories and services
+├── ConsoleApp.kt        # Console UI, menu routing
+├── Product.kt           # Product data class
+├── Sale.kt              # Sale transaction data class
+├── Enums.kt             # ProductCategory, InventoryStatus
+├── Clock.kt             # Time abstraction (testable)
+├── Money.kt             # Monetary value model
+├── *Repository.kt       # ProductRepository, SalesRepository
+└── *Service.kt          # InventoryService, PricingService, AnalysisService, ReportService
 ```
 
-#### 실행
+---
+
+## Getting Started
+
 ```bash
+# Build
+./gradlew clean build
+
+# Run
 java -jar build/libs/convenience-store-system-1.0.0.jar
 ```
 
----
-
-## 7. 프로그램 사용법 및 시나리오
-
-### 7-0. 빠른 시작(요약)
-1) `./gradlew clean build` → `java -jar build/libs/convenience-store-system-1.0.0.jar`  
-2) 콘솔 메뉴에서 번호 입력으로 기능 실행
-
-### 7-1. 메뉴 맵
-| 번호 | 메뉴 | 설명(결과) |
-|---:|---|---|
-| 1 | 전체 리포트 보기 | 재고 경고/권장 발주·베스트셀러·회전율·과다 재고 등 요약 리포트 출력 |
-| 2 | 상품 판매 등록 | 상품 ID·수량 입력 → (수동/유통기한) 할인 적용된 **최종 가격**으로 판매 기록, 재고 차감 |
-| 3 | 상품 입고 등록 | 상품 ID·수량 입력 → 재고 증가 (**빈 입력 시 권장 발주량 자동 적용**) |
-| 4 | 상품 추가 | 신규 상품 등록(이름/가격/적정재고/초기재고/유통기한 등) |
-| 5 | 상품 수정 | 가격·적정재고 등 정보 갱신 (**수동 할인율 설정이 있다면 여기서 설정**) |
-| 7 | 상품 목록/검색 | 전체/키워드 검색 → 선택 후 판매·입고·수정으로 바로 연결 |
-| 0 | 종료 | 프로그램 종료 |
-
-> 참고: 실제 항목 번호는 빌드된 버전의 콘솔 메뉴에 따릅니다.
-
-### 7-2. 입력 규칙
-- **숫자**: 수량·가격 등은 정수 입력(음수/0 불가).  
-- **날짜**: `YYYY-MM-DD` (예: `2025-10-30`).  
-- **할인 적용**: 수동 할인 > 유통기한 할인(D-3:0%, D-2:30%, D-1:50%, D-0:70%).  
-- **권장 발주량**: 입고 수량 입력을 **비우고 Enter** 하면 권장량 자동 채택(지원되는 경우).  
-- **에러 메시지**: 유효하지 않은 입력/재고 부족/미존재 상품 등은 이유와 함께 재입력 요청.
-
-### 7-3. 주요 사용 시나리오
-
-**[재고 확인 및 발주]**  
-1) `1. 전체 리포트 보기`에서 **긴급 재고 경고**를 확인  
-2) 각 품목의 **권장 발주량**을 참고 → `3. 상품 입고 등록`으로 재고 보충  
-   - 수량 입력 생략 시 **권장량 자동 적용**(지원 시)
-
-**[판매 및 할인 적용]**  
-1) 고객 구매 시 `2. 상품 판매 등록`  
-2) **상품 ID·수량** 입력 → 수동/유통기한 할인 반영된 **최종 가격**으로 판매 기록  
-3) 재고 부족 시 판매 제한(사유 표시)
-
-**[상품 정보 관리]**  
-- 신상품 입고: `4. 상품 추가`로 등록  
-- 가격/적정 재고 조정(및 **수동 할인율 설정**이 있을 경우): `5. 상품 수정`  
-- 빠른 탐색: `7. 상품 목록/검색`에서 이름/코드로 조회 → 선택 후 판매/입고/수정 연결
-
-**[리포트 활용]**  
-- `1. 전체 리포트 보기`에서  
-  - **베스트셀러 TOP5**: 프로모션/재고 확보 우선순위 설정  
-  - **회전율 하위**: 가격/진열/프로모션 재검토  
-  - **과다 재고**: 할인/번들 판매 검토
-
-### 7-4. 예시 입출력(형식 예)
-- **판매 등록**:  
-  - 입력: `상품ID=101, 수량=2`  
-  - 처리: 기본가 2,000원 / D-1 할인 50% → **최종가 1,000원** × 2 = 2,000원, 재고 2 감소
-- **입고 등록**:  
-  - 입력: `상품ID=205, 수량=(빈 입력)`  
-  - 처리: 적정 30, 현재 12 → 권장 18 → 재고 30으로 갱신
-
-### 7-5. 자주 만나는 에러 & 해결
-- **재고 부족**: “필요 n, 보유 m” 메시지 확인 후 수량 조정 또는 먼저 입고(메뉴 3).  
-- **미존재 상품**: ID 확인 또는 먼저 `4. 상품 추가`.  
-- **잘못된 형식**: 숫자·날짜 형식을 확인하고 다시 입력.  
-- **할인 확인**: 수동 할인율이 설정되어 있으면 유통기한 할인보다 **우선 적용**됨.
-
-> 현재 버전은 **In-Memory** 동작이라 종료 시 데이터가 초기화됩니다(README.md 8장 참고).
+> If your local JDK version is below 24, lower `jvmToolchain(24)` in `build.gradle.kts` accordingly.
 
 ---
 
-## 8. 한계 및 확장 방안
+## Limitations & Future Work
 
-### 한계점
-- 현재 데이터는 **In-Memory** 관리로, 프로그램 종료 시 **데이터가 소멸**합니다.
-
-### 확장 방안
-- **SQLite/H2** 같은 DB 도입으로 **영속성** 확보  
-- 할인/발주 정책을 **전략 패턴(Strategy Pattern)** 으로 분리 → 매장별 규칙 손쉬운 교체  
-- 분석 리포트를 **웹 대시보드**로 시각화하여 제공
+- Data is in-memory only — all state is lost on program exit; a SQLite or H2 integration would add persistence
+- Discount and reorder policies are hardcoded; extracting them to a Strategy pattern would allow per-store configuration
+- Sales reporting could be extended to a web dashboard for non-technical store operators
 
 ---
 
-## 9. 주의 사항
-- 과제 요구사항에 따라 **외부 라이브러리 사용을 최소화**했습니다.  
-- `jvmToolchain` 버전을 변경할 때는 프로젝트 전반의 **호환성**을 확인하세요.
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## 10. 참고 링크
+## Author
 
-- [README](./README.md) · [PROMPT](./PROMPT.md)
+**Seoyeon Kim** | Undergraduate Student  
+[GitHub](https://github.com/gksmfly) · [Email](mailto:gimhaneul24@gmail.com)
